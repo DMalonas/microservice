@@ -2,7 +2,9 @@ package com.udacity.vehicles.api;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -39,6 +41,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -153,6 +156,35 @@ public class CarControllerTest {
         mvc.perform(delete("/cars/{id}", car.getId()))
                 .andExpect(status().isNoContent());
         verify(carService, times(1)).delete(car.getId());
+    }
+
+
+
+    @Test
+    public void updateCarTest() throws Exception {
+        // Create a car object with some details
+        Car car = getCar();
+        // Save the car to the repository
+        Car savedCar = carService.save(car);
+        Details details = savedCar.getDetails();
+        details.setBody("New Body");
+        savedCar.setDetails(details);
+        Car updatedCar = savedCar;
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        // Call the updateCar method
+        mvc.perform(put("/cars/{id}", savedCar.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updatedCar)))
+                .andExpect(status().isOk());
+
+        // Retrieve the updated car from the repository
+        Car retrievedCar = carService.findById(savedCar.getId());
+
+        // Assert that the car was updated correctly
+        assertNotNull(retrievedCar);
+        assertEquals(updatedCar.getDetails().getBody(), "New Body");
+        assertNotEquals(updatedCar.getDetails().getBody(), "sedan");
     }
 
 
