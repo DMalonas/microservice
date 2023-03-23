@@ -1,3 +1,3 @@
 # microservice
 
-microservice using netflix eureka
+microservice using netflix eureka, swagger for documentation
